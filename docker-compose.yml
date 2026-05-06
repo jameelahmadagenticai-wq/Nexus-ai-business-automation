@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+
+  fastapi:
+    image: python:3.11
+    container_name: nexus_fastapi
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: tail -f /dev/null
+    ports:
+      - "8000:8000"
+    networks:
+      - nexus_network
+
+  streamlit:
+    image: python:3.11
+    container_name: nexus_streamlit
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: tail -f /dev/null
+    ports:
+      - "8501:8501"
+    networks:
+      - nexus_network
+
+  postgres:
+    image: postgres:16
+    container_name: nexus_postgres
+    environment:
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus123
+      POSTGRES_DB: nexusdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nexus_network
+
+  redis:
+    image: redis:7
+    container_name: nexus_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - nexus_network
+
+  chromadb:
+    image: chromadb/chroma
+    container_name: nexus_chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks:
+      - nexus_network
+
+  n8n:
+    image: n8nio/n8n
+    container_name: nexus_n8n
+    ports:
+      - "5679:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - nexus_network
+
+networks:
+  nexus_network:
+
+volumes:
+  postgres_data:
+  chroma_data:
+  n8n_data:
